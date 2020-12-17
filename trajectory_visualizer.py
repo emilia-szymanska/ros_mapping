@@ -44,6 +44,7 @@ class TrajectoryVisualizer:
 
 if __name__ == '__main__':
     rospy.init_node('trajectory_vis')
+    #here?
     frame_id = rospy.get_param('~frame_id', 'map')
     child_frame_id = rospy.get_param('~child_frame_id', 'base_link')
 
