@@ -16,7 +16,6 @@ class TrajectoryVisualizer:
         self.marker.color.a = 1.0
         self.marker.color.r, self.marker.color.g, self.marker.color.b = (0., 0.47, 0.75)
         self.marker.scale.x = 0.5
-        self.marker.scale.y = 0.5
         self.marker.pose.orientation.w = 1.
 
 
@@ -31,11 +30,11 @@ class TrajectoryVisualizer:
                     tl = tf.transform.translation
                     point = Point(tl.x, tl.y, tl.z) 
                     self.marker.points.append(point)
-                    
+                
                 self.marker.header.frame_id = tf.header.frame_id
                 self.marker.header.stamp = tf.header.stamp
-        # here or inside for?
-        self.robot_pos.publish(self.marker)
+                self.robot_pos.publish(self.marker)
+
 
     def run(self):
         while not rospy.is_shutdown():
@@ -44,7 +43,7 @@ class TrajectoryVisualizer:
 
 if __name__ == '__main__':
     rospy.init_node('trajectory_vis')
-    #here?
+    
     frame_id = rospy.get_param('~frame_id', 'map')
     child_frame_id = rospy.get_param('~child_frame_id', 'base_link')
 

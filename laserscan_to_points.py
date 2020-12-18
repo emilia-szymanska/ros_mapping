@@ -36,6 +36,7 @@ class Laser:
             self.marker.header.stamp = msg.header.stamp
             self.marker.points.clear()
             self.tf_buffer.clear()
+            self.n = 0
             return
         
         self.n += 1
@@ -43,12 +44,12 @@ class Laser:
             return
 
         try:
-            #what timestamp?
-            tf_odom_laser = self.tf_buffer.lookup_transform(msg.header.frame_id, 
-                                                            global_frame,
+            tf_odom_laser = self.tf_buffer.lookup_transform(global_frame,
+                                                            msg.header.frame_id, 
                                                             msg.header.stamp)
             
             quaternion = tf_odom_laser.transform.rotation
+            trans = tf_odom_laser.transform.translation
             yaw = 2 * math.atan2(quaternion.z, quaternion.w)
 
             if accumulate_points == False:
@@ -62,13 +63,13 @@ class Laser:
             for i in range(len(msg.ranges)):
                 p = Point()
                 r = msg.ranges[i]
-                alpha = msg.angle_min + i * msg.angle_increment
-                p.x = r * math.cos(alpha)
-                p.y = r * math.sin(alpha)
+                alpha = msg.angle_min + i * msg.angle_increment + yaw
+                p.x = r * math.cos(alpha) + trans.x
+                p.y = r * math.sin(alpha) + trans.y
                 self.marker.points.append(p)
         
             self.pub.publish(self.marker)
-        # all of them?
+        
         except (tf2_ros.LookupException,
                 tf2_ros.ConnectivityException,
                 tf2_ros.ExtrapolationException):
