@@ -16,12 +16,13 @@ class Laser:
         
         self.marker = Marker()
         self.marker.header.frame_id = ""
-        self.marker.header.stamp = rospy.Time.now()
+        self.marker.header.stamp = rospy.Time(0)
         self.marker.type = Marker.POINTS
         self.marker.color.a = 1.0
         self.marker.color.r, self.marker.color.g, self.marker.color.b = (1., 0., 0.)
         self.marker.scale.x = 0.5
         self.marker.scale.y = 0.5
+        self.marker.pose.orientation.w = 1
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -29,6 +30,13 @@ class Laser:
 
     def laser_callback(self, msg):
         
+        if msg.header.stamp < self.marker.header.stamp:
+            print('Timestamp has jumped backwards, clearing the buffer.')
+            self.marker.header.stamp = msg.header.stamp
+            self.marker.points.clear()
+            self.tf_buffer.clear()
+            return
+
         try:
             #what timestamp?
             tf_odom_laser = self.tf_buffer.lookup_transform(msg.header.frame_id, 
@@ -38,9 +46,9 @@ class Laser:
             quaternion = tf_odom_laser.transform.rotation
             yaw = 2 * math.atan2(quaternion.z, quaternion.w)
 
-            self.marker.points = []
-            self.marker.header.frame_id = global_frame
+            self.marker.points.clear()
             self.marker.header.stamp = msg.header.stamp
+            self.marker.header.frame_id = global_frame
         
             for i in range(len(msg.ranges)):
                 p = Point()
