@@ -29,19 +29,34 @@ class Laser:
 
     def laser_callback(self, msg):
         
-        self.marker.points = []
-        self.marker.header.frame_id = msg.header.frame_id
-        self.marker.header.stamp = msg.header.stamp
+        try:
+            #what timestamp?
+            tf_odom_laser = self.tf_buffer.lookup_transform(msg.header.frame_id, 
+                                                            global_frame,
+                                                            msg.header.stamp)
+            
+            quaternion = tf_odom_laser.transform.rotation
+            yaw = 2 * math.atan2(quaternion.z, quaternion.w)
+
+            self.marker.points = []
+            self.marker.header.frame_id = global_frame
+            self.marker.header.stamp = msg.header.stamp
         
-        for i in range(len(msg.ranges)):
-            p = Point()
-            r = msg.ranges[i]
-            alpha = msg.angle_min + i * msg.angle_increment
-            p.x = r * math.cos(alpha)
-            p.y = r * math.sin(alpha)
-            self.marker.points.append(p)
+            for i in range(len(msg.ranges)):
+                p = Point()
+                r = msg.ranges[i]
+                alpha = msg.angle_min + i * msg.angle_increment
+                p.x = r * math.cos(alpha)
+                p.y = r * math.sin(alpha)
+                self.marker.points.append(p)
         
-        self.pub.publish(self.marker)
+            self.pub.publish(self.marker)
+        # all of them?
+        except (tf2_ros.LookupException,
+                tf2_ros.ConnectivityException,
+                tf2_ros.ExtrapolationException):
+            print("Tf exception")
+            return
 
 
     def run(self):
