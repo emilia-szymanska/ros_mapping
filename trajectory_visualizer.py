@@ -48,7 +48,7 @@ if __name__ == '__main__':
     frame_id = rospy.get_param('~frame_id', 'map')
     child_frame_id = rospy.get_param('~child_frame_id', 'base_link')
 
-    print('Starting the trajectory visualiser node.')
+    print('Starting the trajectory visualizer node.')
     print(f'frame_id: {frame_id}, child_frame_id: {child_frame_id}')
 
     traj_vis = TrajectoryVisualizer()

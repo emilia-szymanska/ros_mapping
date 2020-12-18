@@ -20,13 +20,14 @@ class Laser:
         self.marker.type = Marker.POINTS
         self.marker.color.a = 1.0
         self.marker.color.r, self.marker.color.g, self.marker.color.b = (1., 0., 0.)
-        self.marker.scale.x = 0.5
-        self.marker.scale.y = 0.5
+        self.marker.scale.x = 0.25
+        self.marker.scale.y = 0.25
         self.marker.pose.orientation.w = 1
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         
+        self.n = 0
 
     def laser_callback(self, msg):
         
@@ -35,6 +36,10 @@ class Laser:
             self.marker.header.stamp = msg.header.stamp
             self.marker.points.clear()
             self.tf_buffer.clear()
+            return
+        
+        self.n += 1
+        if accumulate_points == True and accumulate_every_n != self.n:
             return
 
         try:
@@ -46,7 +51,11 @@ class Laser:
             quaternion = tf_odom_laser.transform.rotation
             yaw = 2 * math.atan2(quaternion.z, quaternion.w)
 
-            self.marker.points.clear()
+            if accumulate_points == False:
+                self.marker.points.clear()
+            else:
+                self.n = 0
+
             self.marker.header.stamp = msg.header.stamp
             self.marker.header.frame_id = global_frame
         
@@ -76,6 +85,11 @@ class Laser:
 if __name__ == "__main__":
     rospy.init_node('laserscan_points')
     global_frame = rospy.get_param('~global_frame', 'map')
+    accumulate_points = rospy.get_param('~accumulate_points', False)
+    accumulate_every_n = rospy.get_param('~accumulate_every_n', 50)
+    
+    print('Starting the laser scan visualizer node.')
+    print(f'global_frame: {global_frame}, accumulate_points: {accumulate_points}, accumulate_every_n: {accumulate_every_n}')
     
     laser = Laser()
     
